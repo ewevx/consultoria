@@ -62,6 +62,7 @@ legend{padding:0;font-weight:500;font-size:17px}
 .plano:has(input:checked){border-color:var(--navy);background:var(--fundo)}
 .plano .nome{font-weight:700;font-size:20px;line-height:1.1}
 .plano .nome small{display:block;font-weight:300;font-size:15px;color:#4a4e6b;margin-top:3px}
+.plano .nome .eco{color:#2e6b3a;font-weight:500;margin-top:4px}
 .plano .preco{margin-left:auto;text-align:right;font-weight:700;font-size:24px;line-height:1}
 .plano .preco small{display:block;font-weight:300;font-size:14px;color:#4a4e6b;margin-top:3px}
 .plano .tag{position:absolute;top:-10px;right:14px;background:var(--bege);color:var(--navy);font-size:12px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:3px 9px;border-radius:20px}
@@ -296,7 +297,8 @@ footer .logo-pe svg{width:100%;height:auto;display:block}
     <fieldset>
       <legend>Forma de pagamento</legend>
       <div class="opcoes">
-        <label class="opcao"><input type="radio" name="forma" value="Pix" required checked> <span><strong>Pix</strong> · preço menor, pago à vista pelo período</span></label>
+        <label class="opcao"><input type="radio" name="forma" value="Pix" required checked> <span><strong>Pix</strong> · menor preço, pago à vista pelo período</span></label>
+        <label class="opcao oculto" id="opt-pixrec"><input type="radio" name="forma" value="Pix recorrente"> <span><strong>Pix recorrente</strong> · mesmo preço do Pix, com cobrança automática a cada período</span></label>
         <label class="opcao"><input type="radio" name="forma" value="Cartão de crédito"> <span><strong>Cartão de crédito</strong> · assinatura com cobrança automática</span></label>
       </div>
     </fieldset>
@@ -395,13 +397,18 @@ var CONFIG = {
     trimestral: "https://mpago.la/11V3ky9",
     semestral: "https://mpago.la/2b87bpe"
   },
+  pixRecorrente: {          // links do Pix recorrente (Pix Automático) do Mercado Pago, um por plano.
+    mensal: "",             // Enquanto estiverem vazios, a opção "Pix recorrente" fica escondida.
+    trimestral: "",
+    semestral: ""
+  },
   planos: [
     { id: "mensal",     nome: "Mensal",     meses: 1, nota: "Sem fidelidade",
-      pix: { mes: 109, total: 109 }, cartao: { mes: 115, total: 115 } },
+      pix: { mes: 109, total: 109 }, cartao: { mes: 125, total: 125 } },
     { id: "trimestral", nome: "Trimestral", meses: 3, nota: "3 meses", tag: "Mais escolhido",
-      pix: { mes: 99,  total: 297 }, cartao: { mes: 105, total: 315 } },
+      pix: { mes: 99,  total: 297 }, cartao: { mes: 115, total: 345 } },
     { id: "semestral",  nome: "Semestral",  meses: 6, nota: "6 meses", tag: "Melhor preço",
-      pix: { mes: 89,  total: 534 }, cartao: { mes: 95,  total: 570 } }
+      pix: { mes: 89,  total: 534 }, cartao: { mes: 105, total: 630 } }
   ]
 };
 /* ======================================================= */
@@ -415,7 +422,7 @@ function brl(n){ return "R$ " + n.toLocaleString("pt-BR"); }
 
 /* Planos */
 function formaAtual(){ return form.querySelector('input[name="forma"]:checked').value; }
-function chave(forma){ return forma === "Pix" ? "pix" : "cartao"; }
+function chave(forma){ return forma === "Cartão de crédito" ? "cartao" : "pix"; }
 function preco(plano, forma){ return plano[chave(forma)]; }
 function renderPlanos(){
   var el = document.getElementById("planos"), forma = formaAtual(), html = "";
@@ -426,12 +433,17 @@ function renderPlanos(){
     html += '<label class="plano">' +
       (p.tag ? '<span class="tag">' + p.tag + '</span>' : '') +
       '<input type="radio" name="plano" value="' + p.id + '"' + (i === 0 ? ' required' : '') + (p.id === selId ? ' checked' : '') + '>' +
-      '<span class="nome">' + p.nome + '<small>' + p.nota + '</small></span>' +
+      '<span class="nome">' + p.nome + '<small>' + p.nota + '</small>' +
+        (forma !== "Cartão de crédito" ? '<small class="eco">Economize ' + brl(p.cartao.mes - p.pix.mes) + ' por mês</small>' : '') + '</span>' +
       '<span class="preco">' + brl(pr.mes) + '<small>por mês' + (p.meses > 1 ? ' · ' + brl(pr.total) + ' no total' : '') + '</small></span>' +
       '</label>';
   });
   el.innerHTML = html;
 }
+(function(){
+  var r = CONFIG.pixRecorrente;
+  if (r.mensal || r.trimestral || r.semestral){ document.getElementById("opt-pixrec").classList.remove("oculto"); }
+})();
 renderPlanos();
 
 function mostrar(i){
@@ -561,7 +573,6 @@ form.addEventListener("submit", function(e){
 
   var pagar = document.getElementById("btn-pagar");
   var pixBox = document.getElementById("pix-box");
-  var link = CONFIG.pagamento[id];
   pixBox.classList.add("oculto");
   pagar.classList.remove("oculto");
   if (forma === "Pix"){
@@ -572,8 +583,13 @@ form.addEventListener("submit", function(e){
       document.getElementById("pix-nome").textContent = CONFIG.pix.nome;
       pixBox.classList.remove("oculto");
     } else { pendencias.push("preencher CONFIG.pix.chave"); }
-  } else if (link){ pagar.href = link; }
-  else { pagar.href = "#"; pendencias.push("preencher o link da assinatura do Mercado Pago do plano " + plano.nome); }
+  } else {
+    var recorr = forma === "Pix recorrente";
+    var link = (recorr ? CONFIG.pixRecorrente : CONFIG.pagamento)[id];
+    pagar.textContent = recorr ? "Autorizar Pix recorrente" : "Assinar no cartão";
+    if (link){ pagar.href = link; }
+    else { pagar.href = "#"; pendencias.push("preencher o link " + (recorr ? "do Pix recorrente" : "da assinatura no cartão") + " do plano " + plano.nome); }
+  }
 
   var dev = document.getElementById("dev-aviso");
   if (pendencias.length){
