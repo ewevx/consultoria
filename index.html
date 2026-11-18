@@ -339,7 +339,8 @@ footer .logo-pe svg{width:100%;height:auto;display:block}
       <p style="margin:0 0 4px"><strong id="pix-chave" style="word-break:break-all"></strong></p>
       <p style="margin:0 0 10px;font-weight:300" id="pix-nome"></p>
       <button type="button" class="escuro" id="pix-copiar" style="font-size:16px;padding:11px 16px">Copiar chave Pix</button>
-      <p style="margin:10px 0 0;font-size:15px">Depois, mande o comprovante no WhatsApp.</p>
+      <p style="margin:14px 0 8px;font-size:15px">Depois de pagar, envie o comprovante para mim no WhatsApp:</p>
+      <a class="btn escuro bloco" id="btn-comprovante" href="#" target="_blank" rel="noopener" style="font-size:16px;padding:12px 16px">Enviar comprovante no WhatsApp</a>
     </div>
   </div></div>
 
@@ -381,6 +382,7 @@ footer .logo-pe svg{width:100%;height:auto;display:block}
 <path d="M100.638 208.72L89.6974 196.601C83.4287 189.971 75.9927 182.582 69.4523 176.084C65.092 171.751 60.5781 167.257 56.3924 162.964C2.92484 108.124 36.526 68.072 56.7421 55.9141C63.4399 51.886 76.0212 55.471 82.9813 63.9518C89.9624 72.4582 99.462 84.5217 105.001 115.541C105.743 119.695 107.113 130.04 107.113 130.04L92.7832 120.144C90.6008 87.8 73.1587 61.3244 62.6739 64.8385C58.4015 66.2705 58.8913 96.6136 73.2842 112.048C74.1798 113.009 75.041 113.934 75.8718 114.827C82.9359 122.421 87.7997 127.649 92.8851 131.736L108.275 142.134C109.453 143.132 110.594 144.106 111.708 145.072C119.507 151.836 125.976 158.208 134.32 169.51C154.04 196.219 163.77 237.544 150.889 269.159C128.275 324.659 115.058 308.022 120.038 299.183C138.898 265.71 124.179 236.297 100.638 208.72Z" fill="#D1AF9B"/>
 </svg>
 </span>
+  <a id="link-duvidas" href="#" target="_blank" rel="noopener" style="display:inline-block;margin-bottom:10px;color:#202441;font-weight:500;font-size:16px">Dúvidas? Fale comigo no WhatsApp</a><br>
   Seus dados ficam só com você e comigo: a ficha não é enviada a nenhum servidor, ela vai direto para o meu WhatsApp quando você aperta enviar.
 </footer>
 
@@ -414,6 +416,7 @@ var CONFIG = {
 /* ======================================================= */
 
 var form = document.getElementById("ficha");
+document.getElementById("link-duvidas").href = CONFIG.whatsapp ? "https://wa.me/" + CONFIG.whatsapp + "?text=" + encodeURIComponent("Oi, Ewerton! Vim pelo seu link e tenho uma dúvida sobre a consultoria.") : "#";
 var steps = Array.prototype.slice.call(form.querySelectorAll(".step"));
 var bars = form.querySelectorAll(".progress i");
 var atual = 0;
@@ -581,6 +584,9 @@ form.addEventListener("submit", function(e){
       document.getElementById("pix-valor").textContent = brl(preco(plano, forma).total);
       document.getElementById("pix-chave").textContent = CONFIG.pix.chave;
       document.getElementById("pix-nome").textContent = CONFIG.pix.nome;
+      var nome1 = v("nome").split(" ")[0];
+      var txtComp = "Oi, Ewerton! Aqui é " + v("nome") + ". Acabei de pagar o plano " + plano.nome + " (" + brl(preco(plano, forma).total) + ") por Pix. Segue o comprovante:";
+      document.getElementById("btn-comprovante").href = CONFIG.whatsapp ? "https://wa.me/" + CONFIG.whatsapp + "?text=" + encodeURIComponent(txtComp) : "#";
       pixBox.classList.remove("oculto");
     } else { pendencias.push("preencher CONFIG.pix.chave"); }
   } else {
