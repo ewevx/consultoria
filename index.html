@@ -67,6 +67,7 @@ legend{padding:0;font-weight:500;font-size:17px}
 .plano .tag{position:absolute;top:-10px;right:14px;background:var(--bege);color:var(--navy);font-size:12px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:3px 9px;border-radius:20px}
 .ck{display:flex;gap:12px;align-items:flex-start;margin:14px 0;font-size:16px;font-weight:400}
 .ck input{width:22px;height:22px;accent-color:var(--navy);flex:none;margin:2px 0 0}
+fieldset.laudos{margin-top:8px;padding-top:6px;border-top:1px solid var(--fundo)}
 .botoes{display:flex;gap:10px;margin-top:22px}
 button,.btn{font:inherit;font-weight:700;font-size:18px;letter-spacing:.3px;border:0;border-radius:10px;padding:15px 20px;cursor:pointer;text-align:center;text-decoration:none;display:inline-block}
 .primario{flex:1;background:var(--bege);color:var(--navy)}
@@ -222,6 +223,16 @@ footer .logo-pe svg{width:100%;height:auto;display:block}
     <label class="campo">Outros remédios ou condições que eu deva saber
       <textarea name="remedios" placeholder="Se não houver, escreva: nenhum"></textarea>
     </label>
+    <fieldset class="laudos">
+      <legend>Laudos, exames ou diagnósticos <small style="font-weight:300">(opcional)</small></legend>
+      <label class="ck" style="margin-top:8px"><input type="checkbox" name="laudos" id="laudos"> <span>Tenho laudo, exame ou diagnóstico de lesão ou condição de saúde para enviar</span></label>
+      <div class="oculto" id="box-laudos">
+        <label class="campo">O que você vai enviar?
+          <input type="text" name="laudos_desc" placeholder="Ex.: ressonância do joelho direito, 2025">
+        </label>
+        <div class="aviso" style="margin-top:0">Para proteger seus dados, não há upload de arquivos nesta página. Ao finalizar a ficha, você envia a foto ou o PDF direto para mim, na mesma conversa do WhatsApp.</div>
+      </div>
+    </fieldset>
     <div class="botoes"><button type="button" class="secundario" data-prev>Voltar</button><button type="button" class="primario" data-next>Continuar</button></div>
   </section>
 
@@ -315,6 +326,7 @@ footer .logo-pe svg{width:100%;height:auto;display:block}
   <div class="passo"><span class="n">1</span><div>
     <p><strong>Envie sua ficha para mim no WhatsApp.</strong> Ela vai preenchida em uma mensagem, é só apertar enviar.</p>
     <a class="btn escuro bloco" id="btn-zap" href="#" target="_blank" rel="noopener">Enviar ficha no WhatsApp</a>
+    <div class="aviso oculto" id="aviso-laudos" style="margin-bottom:0"><strong>Seus laudos:</strong> depois de enviar a ficha, na mesma conversa toque no clipe (ou no +) e escolha a foto ou o PDF do laudo ou exame.</div>
   </div></div>
 
   <div class="passo"><span class="n">2</span><div>
@@ -459,6 +471,10 @@ function temSim(){
 
 form.addEventListener("change", function(e){
   if (e.target.name === "forma"){ renderPlanos(); }
+  if (e.target.name === "laudos"){
+    document.getElementById("box-laudos").classList.toggle("oculto", !e.target.checked);
+    if (!e.target.checked){ form.laudos_desc.value = ""; }
+  }
   if (e.target.name === "objetivo"){
     var outro = e.target.value === "Outro";
     document.getElementById("box-outro").classList.toggle("oculto", !outro);
@@ -504,6 +520,7 @@ function montarMensagem(plano, forma){
     temSim() ? "Atenção: respondeu SIM em alguma pergunta; ciente da recomendação médica (termo marcado)." : "Todas as respostas: não.",
     "Lesões/dores: " + (v("lesoes") || "-"),
     "Remédios/condições: " + (v("remedios") || "-"),
+    "Laudos/exames: " + (form.laudos.checked ? "vou enviar em anexo nesta conversa" + (v("laudos_desc") ? " (" + v("laudos_desc") + ")" : "") : "não tenho"),
     "",
     "*Rotina e objetivo*",
     "Objetivo: " + (v("objetivo") === "Outro" ? "Outro – " + v("objetivo_outro") : v("objetivo")) + (v("objetivo_texto") ? " – " + v("objetivo_texto") : ""),
@@ -537,6 +554,7 @@ form.addEventListener("submit", function(e){
     (plano.meses > 1 ? " (" + brl(preco(plano, forma).total) + " no total)" : "") + " · " + forma;
 
   var pendencias = [];
+  document.getElementById("aviso-laudos").classList.toggle("oculto", !form.laudos.checked);
   var zap = document.getElementById("btn-zap");
   if (CONFIG.whatsapp){ zap.href = "https://wa.me/" + CONFIG.whatsapp + "?text=" + encodeURIComponent(msg); }
   else { zap.href = "#"; pendencias.push("preencher CONFIG.whatsapp"); }
